@@ -1,0 +1,365 @@
+.open finalproject.db
+
+.mode column
+.headers on
+
+ pragma table_info(EMPLOYEE);
+ pragma table_info(WORKS_AS_GROUND_CREW);
+ pragma table_info(WORKS_AS_TERMINAL_STAFF);
+ pragma table_info(WORKS_AS_ATC_PERSONNEL);
+ pragma table_info(AIRPORT);
+ pragma table_info(RUNWAY);
+ pragma table_info(TERMINAL);
+ pragma table_info(GATE);
+ pragma table_info(DOCKS_AT);
+ pragma table_info(LANDS_AT);
+ pragma table_info(TAKES_OFF);
+ pragma table_info(AIRCRAFT);
+
+
+drop table EMPLOYEE;
+drop table WORKS_AS_GROUND_CREW;
+drop table WORKS_AS_TERMINAL_STAFF;
+drop table WORKS_AS_ATC_PERSONNEL;
+drop table AIRPORT;
+drop table RUNWAY;
+drop table TERMINAL;
+drop table GATE;
+drop table DOCKS_AT;
+drop table LANDS_AT;
+drop table TAKES_OFF;
+drop table AIRCRAFT;
+
+
+create table EMPLOYEE
+(
+Employee_id char(10) not null,
+Fname varchar(15) not null,
+Lname varchar(15) not null,
+Ssn char(9) not null,
+Salary decimal(10,2),
+Hiring_date date(8),
+Primary Key (Employee_id),
+Unique (Ssn)
+);
+
+
+create table WORKS_AS_GROUND_CREW
+(
+Employee_id char(10) not null,
+Iata_code varchar(4) not null,
+Runway_number varchar(5) not null, 
+
+Primary Key (Employee_id, Iata_code, Runway_number),
+
+Foreign key (Employee_id) 
+references EMPLOYEE(Employee_id) 
+on update cascade on delete set null,
+
+Foreign key (Iata_code, Runway_number) 
+references RUNWAY(Iata_code, Runway_number) 
+on update cascade on delete set null
+);
+
+
+create table WORKS_AS_TERMINAL_STAFF
+(
+Employee_id char(10) not null ,
+Iata_code varchar(4) not null , 
+Runway_number varchar(5) not null , 
+Terminal_num int not null, 
+
+PRIMARY KEY (Employee_id, Iata_code, Runway_number, Terminal_num), 
+
+Foreign key (Employee_id) references EMPLOYEE(Employee_id) on update cascade on delete set null,
+
+Foreign key (Iata_code, Runway_number, Terminal_num) 
+references TERMINAL(Iata_code, Runway_number, Terminal_num) 
+on update cascade on delete set null
+);
+
+
+create table WORKS_AS_ATC_PERSONNEL
+(
+Employee_id char(10) not null,
+Iata_code varchar(4) not null,
+PRIMARY KEY(Employee_id),
+Foreign key(Iata_code) references Airport(Iata_code) on update cascade on delete cascade,
+Foreign key (Employee_id) references EMPLOYEE(Employee_id) on update cascade on delete set null
+);
+
+
+create table AIRPORT
+(
+Location varchar(50),
+Name varchar(50) not null,
+Iata_code varchar(4),
+Capacity INT,
+Runway_number,
+primary key(Iata_code),
+unique(Name)
+);
+
+
+
+
+create table RUNWAY
+(
+Iata_code varchar(4) not null , 
+Runway_number varchar(5) not null , 
+Altitude int, 
+Length int, 
+
+Primary key (Iata_code, Runway_number), 
+
+Foreign key (Iata_code) references AIRPORT(Iata_code) on update cascade on delete cascade
+);
+
+create table TERMINAL
+(
+Iata_code varchar(4) not null,
+Runway_number varchar(5) not null,
+Terminal_num int not null,
+Capacity int,
+Airline varchar(30),
+Num_gates int,
+Primary key(Iata_code, Runway_number, Terminal_num),
+
+Foreign key(Iata_code, Runway_number) 
+references RUNWAY(Iata_code, Runway_number) 
+on update cascade on delete cascade
+);
+
+
+create table GATE
+(
+Iata_code char(4) not null,
+Runway_number varchar(5) not null,
+Terminal_num int not null,
+Gate_num varchar(3),
+primary key (Iata_code, Runway_number, Terminal_num, Gate_num),
+Foreign key (Iata_code, Runway_number, Terminal_num) 
+references TERMINAL(Iata_code, Runway_number, Terminal_num)
+on update cascade on delete cascade
+);
+
+
+create table DOCKS_AT
+(
+Iata_code varchar(4) not null , 
+Runway_number varchar(5) not null , 
+Terminal_num int not null, 
+Gate_num varchar(3),
+Begin_time datetime not null,
+End_time datetime,
+Tail_number varchar(10)not null,
+
+Primary Key (Iata_code, Runway_number , Terminal_num, Gate_num, Begin_time, Tail_number),
+
+Foreign key (Iata_code, Runway_number , Terminal_num, Gate_num) 
+references GATE(Iata_code, Runway_number , Terminal_num, Gate_num) 
+on update cascade on delete set null,
+
+Foreign key (Tail_number)  references AIRCRAFT(Tail_number)  on update cascade on delete set null
+);
+
+
+
+create table LANDS_AT
+(
+Iata_code varchar(4) not null,
+Runway_number varchar(5) not null, 
+Tail_number varchar(10) not null,
+Land_time datetime not null, 
+
+PRIMARY KEY(Iata_code, Runway_number, Tail_number, Land_time),
+
+Foreign key(Iata_code, Runway_number) references RUNWAY(Iata_code, Runway_number) on update cascade on delete cascade
+
+Foreign key(Tail_number) references AIRCRAFT(Tail_number) on update cascade on delete cascade
+);
+
+create table TAKES_OFF
+(
+Iata_code varchar(4) not null,
+Runway_number varchar(5) not null, 
+Tail_number varchar(10) not null,
+Leave_time datetime, 
+
+PRIMARY KEY(Iata_code, Runway_number, Tail_number, Leave_time),
+
+Foreign key(Iata_code, Runway_number) references RUNWAY(Iata_code, Runway_number) on update cascade on delete cascade
+
+Foreign key(Tail_number) references AIRCRAFT(Tail_number) on update cascade on delete cascade
+);
+
+create table AIRCRAFT
+(
+Tail_number varchar(10),
+Passenger_capacity int,
+Model varchar(10),
+Lbs_fuel int,
+primary key (Tail_number)
+);
+
+
+
+
+//// Populating the Tables
+
+
+
+.tables
+
+Insert into EMPLOYEE 
+values 
+('9123123123', 'Bob', 'Smith', '000111222', 40000.00, 2015-01-01),
+('8323123123', 'Billybob', 'Smith', '333111555', 45000.00, 2016-11-05),
+('8323123555', 'Adam', 'Smith', '444777555', 47000.00, 2013-05-22),
+('9090123120', 'Sponge', 'Bob', '888444000', 37000.00, 2020-06-24);
+
+
+Insert into WORKS_AS_GROUND_CREW
+Values
+('9123123123', 'SEA', '34R'),
+('8323123123', 'SEA', '34R');
+
+
+Insert into WORKS_AS_TERMINAL_STAFF values ('8323123555', 'SEA', '34R', '5');
+
+
+Insert into WORKS_AS_ATC_PERSONNEL values ('9090123120', 'SEA');
+
+
+insert into AIRPORT
+values 
+	('Seattle', 'Seattle-Tacoma International Airport', 'SEA', 15000, 3),
+	('Atlanta', 'Hartsfield-Jackson Atlanta International Airport', 'ATL', 20000, 5),
+	('New York', 'John F. Kennedy International Airport', 'JFK', 18000, 4);
+
+Insert into RUNWAY 
+values 
+('SEA', '34R', 385, 11901);
+
+
+Insert into TERMINAL 
+values
+('SEA', '34R', 1, 6000, 'Alaska Airlines', 10);
+
+
+Insert into GATE 
+values 
+('SEA', '34R', 5, 'A10'), 
+('SEA', '34R', 5, 'A11'), 
+('SEA', '34R', 5, 'A12'),
+('SEA', '34R', 2, 'B5'), 
+('SEA', '34R', 2, 'B6');
+
+
+Insert into DOCKS_AT 
+values 
+('SEA', '34R', 1, 'A12', '2020-03-05 02:48:10', NULL, 'FG12451'), 
+('SEA', '34R', 1, 'B6', '2020-03-05 01:28:13', NULL, 'GWA1512'), 
+('SEA', '34R', 1, 'B5', '2020-03-05 11:28:13', '2020-03-05 02:38:22', 'GH21512');
+
+
+insert into LANDS_AT
+values
+	('SEA', '34R', 'FG12451', '2020-03-05 02:43:10');
+
+
+insert into TAKES_OFF
+values
+	('SEA', '34R', 'FG12451', '2020-03-05 03:39:10');
+
+
+insert into AIRCRAFT
+values
+	('FG12451', 150, 'B734', 1000),
+	('GWA1512', 200, 'B737', 1500),
+	('GH21512', 100, 'AC90', 900),
+	('JHU6823', 90, 'CL2T', 500),
+	('OIU16191', 10, 'CRJ9', 600);
+
+
+
+
+//// SQL statements (that provide functionality)
+
+
+
+
+Select tail_number, land_time
+From LANDS_AT
+Where Land_time > '2020-03-05 00:00:00'  AND 
+            Land_time < '2020-03-06 00:00:00';
+//List of flights that arrived that day
+
+
+Select Tail_number, Leave_time 
+From TAKES_OFF
+Where Leave_time > '2020-03-05 00:00:00'  AND 
+            Leave_time < '2020-03-06 00:00:00';
+//List of fights that left that day
+
+
+Select Tail_number
+From DOCKS_AT
+Where End_time is null;
+//Aircraft tail numbers that are currently docked to a terminal
+
+
+Select tail_number 
+From LANDS_AT 
+Where tail_number not in (Select tail_number From DOCKS_AT);
+//Aircraft tail numbers that are waiting to dock with the terminal
+
+
+Select avg(salary)
+From employee e, WORKS_AS_ATC_PERSONNEL w
+where e.Employee_id = w.Employee_id;
+//Average salary of air traffic control workers (aggregation)
+
+
+Select count(iata_code)
+from  TAKES_OFF
+Where Leave_time > '2020-02-26 00:00:00'  AND 
+            Leave_time < '2020-03-04 00:00:00';
+//Number of flight departures over the last week. (aggregation)
+
+
+Select Employee_id, fname, lname
+from employee
+where salary < 40000;
+//Select from the ID number column, first name, last name from employee table, having salary under $40,000
+
+
+Select Employee_id, Salary
+From EMPLOYEE
+Order by Salary desc;
+// this lists all the employe ID numbers and orders them by salary decreasingly 
+
+
+Select gate_num, airline
+From GATE g, TERMINAL t
+Where g.runway_number =  '34R' and g.Runway_number = t.Runway_number 
+Group by g.Terminal_num;
+// List the gate number and airline info, for aircraft that landed at runway ‘34R’ and is grouped by terminal number. 
+
+
+
+
+Select * from EMPLOYEE;
+select * from AIRCRAFT;
+select * from AIRPORT;
+select * from DOCKS_AT;
+select * from EMPLOYEE;
+select * from GATE;
+select * from LANDS_AT;
+select * from RUNWAY;
+select * from TAKES_OFF;
+select * from TERMINAL;
+select * from WORKS_AS_ATC_PERSONNEL;
+select * from WORKS_AS_GROUND_CREW;
+select * from WORKS_AS_TERMINAL_STAFF;
+
